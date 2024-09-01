@@ -48,8 +48,9 @@ public class ControllerExceptionHandler {
 
         for (FieldError x :
                 ex.getBindingResult().getFieldErrors()) {
-            error.addErros(x.getField(), ex.getFieldError().getDefaultMessage());
+            error.addErrors(x.getField(), ex.getFieldError().getDefaultMessage());
         }
+
 
         return ResponseEntity.status(BAD_REQUEST)
                 .body(Mono.just(error));

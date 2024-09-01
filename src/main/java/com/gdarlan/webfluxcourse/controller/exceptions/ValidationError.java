@@ -20,7 +20,7 @@ public class ValidationError extends StandardError implements Serializable {
         super(timestamp, path, status, error, message);
     }
 
-    public void addErros(String fieldName, String message) {
+    public void addErrors(String fieldName, String message) {
         this.errors.add(new FieldError(fieldName, message));
     }
 
