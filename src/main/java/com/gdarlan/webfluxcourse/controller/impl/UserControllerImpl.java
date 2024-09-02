@@ -1,6 +1,7 @@
 package com.gdarlan.webfluxcourse.controller.impl;
 
 import com.gdarlan.webfluxcourse.controller.UserController;
+import com.gdarlan.webfluxcourse.mapper.UserMapper;
 import com.gdarlan.webfluxcourse.model.request.UserRequest;
 import com.gdarlan.webfluxcourse.model.response.UserResponse;
 import com.gdarlan.webfluxcourse.service.UserService;
@@ -18,18 +19,20 @@ import reactor.core.publisher.Mono;
 public class UserControllerImpl implements UserController {
 
     private final UserService userService;
+    private final UserMapper mapper;
 
     @Override
     public ResponseEntity<Mono<Void>> save(final UserRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(userService.save(request)
                         .then()); //! quando usa o .then ele faz retornar um void
-
     }
 
     @Override
-    public ResponseEntity<Mono<UserResponse>> find(String id) {
-        return null;
+    public ResponseEntity<Mono<UserResponse>> findById(String id) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(userService.findById(id)
+                        .map(mapper::toResponse));
     }
 
     @Override
