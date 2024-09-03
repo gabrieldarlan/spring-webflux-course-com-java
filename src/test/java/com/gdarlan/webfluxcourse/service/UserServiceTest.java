@@ -26,10 +26,10 @@ class UserServiceTest {
     @Mock
     private UserMapper mapper;
     @InjectMocks
-    private UserService userService;
+    private UserService service;
 
     @Test
-    void save() {
+    void must_be_save_a_user_with_successfully() {
 
         UserRequest request = new UserRequest("gabriel", "gabriel@gmail.com", "1234");
         User entity = User.builder().build();
@@ -37,7 +37,7 @@ class UserServiceTest {
         when(mapper.toEntity(any(UserRequest.class))).thenReturn(entity);
         when(repository.save(any(User.class))).thenReturn(Mono.just(User.builder().build()));
 
-        Mono<User> result = userService.save(request);
+        Mono<User> result = service.save(request);
 
         StepVerifier.create(result)//! sobrescreve o metodo para que ele possa ser executado
                 .expectNextMatches(Objects::nonNull)//! verifica o teste
@@ -47,4 +47,20 @@ class UserServiceTest {
 
         verify(repository, times(1)).save(any(User.class));//! verifica quantas vezes o metodo foi chamado
     }
+
+    @Test
+    void test_find_by_id_with_successfully() {
+        when(repository.findById(anyString())).thenReturn(Mono.just(User.builder().id("123").build()));
+
+        Mono<User> result = service.findById("123");
+
+        StepVerifier.create(result)
+                .expectNextMatches(user -> user.getClass() == User.class
+                        && Objects.equals(user.getId(), "123"))
+                .expectComplete()
+                .verify();
+
+        verify(repository, times(1)).findById(anyString());
+    }
+
 }
