@@ -23,5 +23,5 @@ public interface UserController {
     ResponseEntity<Mono<UserResponse>> update(@PathVariable String id, @RequestBody UserRequest resRequest);
 
     @DeleteMapping(value = "/{id}")
-    ResponseEntity<Mono<Void>> delete(@PathVariable String delete);
+    ResponseEntity<Mono<Void>> delete(@PathVariable String id);
 }
