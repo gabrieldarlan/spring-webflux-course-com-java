@@ -1,10 +1,8 @@
 package com.gdarlan.webfluxcourse.controller;
 
 import com.gdarlan.webfluxcourse.entity.User;
-import com.gdarlan.webfluxcourse.mapper.UserMapper;
 import com.gdarlan.webfluxcourse.model.request.UserRequest;
 import com.gdarlan.webfluxcourse.service.UserService;
-import com.mongodb.reactivestreams.client.MongoClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +16,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 import static reactor.core.publisher.Mono.just;
@@ -32,12 +31,6 @@ class UserControllerImplTest {
 
     @MockBean
     private UserService service;
-
-    @MockBean
-    private UserMapper mapper;
-
-    @MockBean
-    private MongoClient mongoClient;
 
     @Test
     @DisplayName("test endpoint save with success")
@@ -54,6 +47,28 @@ class UserControllerImplTest {
                 .expectStatus().isCreated();
 
         verify(service, times(1)).save(any(UserRequest.class));
+    }
+
+    @Test
+    @DisplayName("test endpoint save with bad request")
+    void testSaveWithBadRequest() {
+        final var request = new UserRequest("gabriel ", "gabriel@gmail.com", "123");
+
+        webTestClient
+                .post()
+                .uri("/users")
+                .contentType(APPLICATION_JSON)
+                .body(fromValue(request))
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$.path").isEqualTo("/users")
+                .jsonPath("$.status").isEqualTo(BAD_REQUEST.value())
+                .jsonPath("$.error").isEqualTo("Validation error")
+                .jsonPath("$.message").isEqualTo("Error on validation attributes")
+                .jsonPath("$.errors[0].fieldName").isEqualTo("name")
+                .jsonPath("$.errors[0].message").isEqualTo("field cannot have whitespace at the beginning or end");
+
     }
 
     @Test
