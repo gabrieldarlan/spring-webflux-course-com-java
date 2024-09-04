@@ -4,6 +4,7 @@ import com.gdarlan.webfluxcourse.entity.User;
 import com.gdarlan.webfluxcourse.mapper.UserMapper;
 import com.gdarlan.webfluxcourse.model.request.UserRequest;
 import com.gdarlan.webfluxcourse.repository.UserRepository;
+import com.gdarlan.webfluxcourse.service.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,6 +16,8 @@ import reactor.test.StepVerifier;
 
 import java.util.Objects;
 
+import static java.lang.String.format;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -79,7 +82,7 @@ class UserServiceTest {
     }
 
     @Test
-    void test_update_user_with_successufully() {
+    void test_update_user_with_successfully() {
         UserRequest request = new UserRequest("gabriel", "gabriel@gmail.com", "1234");
         User entity = User.builder().build();
 
@@ -99,7 +102,7 @@ class UserServiceTest {
     }
 
     @Test
-    void test_delete_user_with_successufully() {
+    void test_delete_user_with_successfully() {
         User entity = User.builder().build();
         when(repository.findAndRemove(anyString())).thenReturn(Mono.just(entity));
 
@@ -112,5 +115,17 @@ class UserServiceTest {
 
         verify(repository, times(1)).findAndRemove(anyString());
 
+    }
+
+    @Test
+    void test_handle_not_found_with_successfully() {
+        when(repository.findById(anyString())).thenReturn(Mono.empty());
+
+        try {
+            service.findById("123").block();
+        } catch (Exception ex) {
+            assertEquals(ObjectNotFoundException.class, ex.getClass());
+            assertEquals(format("Object not found. Id: %s, Type: %s", "123", User.class.getSimpleName()), ex.getMessage());
+        }
     }
 }
