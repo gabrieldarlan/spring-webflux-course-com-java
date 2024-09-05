@@ -10,7 +10,6 @@ import com.mongodb.reactivestreams.client.MongoClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,6 +20,7 @@ import reactor.core.publisher.Flux;
 
 import static java.lang.String.format;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -55,7 +55,7 @@ class UserControllerImplTest {
     @DisplayName("test endpoint save with success")
     void testSaveWithSuccess() {
         final var request = new UserRequest(NAME, EMAIL, PASSWORD);
-        when(service.save(ArgumentMatchers.any(UserRequest.class))).thenReturn(just(User.builder().build()));
+        when(service.save(any(UserRequest.class))).thenReturn(just(User.builder().build()));
 
         webTestClient
                 .post()
@@ -110,6 +110,9 @@ class UserControllerImplTest {
                 .jsonPath("$.email").isEqualTo(EMAIL)
                 .jsonPath("$.password").isEqualTo(PASSWORD);
 
+        verify(service, times(1)).findById(anyString());
+        verify(mapper).toResponse(any(User.class));
+
     }
 
     @Test
@@ -151,10 +154,35 @@ class UserControllerImplTest {
                 .jsonPath("$.[0].name").isEqualTo(NAME)
                 .jsonPath("$.[0].email").isEqualTo(EMAIL)
                 .jsonPath("$.[0].password").isEqualTo(PASSWORD);
+
+        verify(service, times(1)).findAll();
+        verify(mapper).toResponse(any(User.class));
     }
 
     @Test
-    void update() {
+    @DisplayName("Test update endpoint with success")
+    void testUpdateWithSuccess() {
+        final var userResponse = new UserResponse(ID, NAME, EMAIL, PASSWORD);
+        final var request = new UserRequest(NAME, EMAIL, PASSWORD);
+
+        when(service.update(anyString(), any(UserRequest.class))).thenReturn(just(User.builder().build()));
+        when(mapper.toResponse(any(User.class))).thenReturn(userResponse);
+
+        webTestClient
+                .patch()
+                .uri("/users/" + ID)
+                .contentType(APPLICATION_JSON)
+                .body(fromValue(request))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isEqualTo(ID)
+                .jsonPath("$.name").isEqualTo(NAME)
+                .jsonPath("$.email").isEqualTo(EMAIL)
+                .jsonPath("$.password").isEqualTo(PASSWORD);
+
+        verify(service, times(1)).update(anyString(), any(UserRequest.class));
+        verify(mapper).toResponse(any(User.class));
     }
 
     @Test
